@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 Missão IA · Funções e Inteligência Artificial</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="container">
+
+        <!-- CABEÇALHO DA MISSÃO -->
+        <header class="mission-header">
+            <div class="header-content">
+                <h1>
+                    <span class="icon">🚀</span> 
+                    Missão IA
+                    <span class="badge">funções</span>
+                </h1>
+                <p class="subtitle">Descubra como as funções matemáticas impulsionam a Inteligência Artificial</p>
+            </div>
+            <div class="status-bar">
+                <span>🧠 Nível: <strong>Explorador</strong></span>
+                <span>📊 Progresso: <span id="progresso">0</span>%</span>
+            </div>
+        </header>
+
+        <!-- CONTEÚDO PRINCIPAL -->
+        <div class="grid">
+
+            <!-- COLUNA ESQUERDA - TEORIA -->
+            <section class="theory-section">
+                <h2>📚 Fundamentos da Missão</h2>
+                
+                <div class="concept-card">
+                    <h3>🎯 O que são Funções?</h3>
+                    <p>
+                        Na IA, funções são como <strong>receitas</strong> que transformam 
+                        <strong>entradas</strong> em <strong>saídas</strong>. 
+                        Elas são a base de todo algoritmo inteligente!
+                    </p>
+                    <div class="formula">
+                        f(x) = y
+                        <span class="explanation">entrada → processamento → saída</span>
+                    </div>
+                </div>
+
+                <div class="concept-card">
+                    <h3>🧮 Funções Matemáticas na IA</h3>
+                    <ul class="function-list">
+                        <li>
+                            <strong>Função de Ativação</strong>
+                            <span>Decide se um neurônio "dispara"</span>
+                            <code>ReLU(x) = max(0, x)</code>
+                        </li>
+                        <li>
+                            <strong>Função de Custo</strong>
+                            <span>Mede o erro do modelo</span>
+                            <code>Erro = (previsão - real)²</code>
+                        </li>
+                        <li>
+                            <strong>Função de Perda</strong>
+                            <span>Otimiza o aprendizado</span>
+                            <code>Cross-Entropy = -log(probabilidade)</code>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="concept-card">
+                    <h3>🤖 Funções na Prática</h3>
+                    <div class="code-block">
+                        <pre>
+<span class="comment">// Função que simula um neurônio</span>
+<span class="keyword">function</span> <span class="function">neuronio</span>(entradas, pesos, bias) {
+    <span class="keyword">let</span> soma = 0;
+    <span class="keyword">for</span> (<span class="keyword">let</span> i = 0; i < entradas.length; i++) {
+        soma += entradas[i] * pesos[i];
+    }
+    soma += bias;
+    <span class="keyword">return</span> <span class="function">ativacao</span>(soma);
+}
+
+<span class="comment">// Função de ativação ReLU</span>
+<span class="keyword">function</span> <span class="function">ativacao</span>(x) {
+    <span class="keyword">return</span> Math.max(0, x);
+}</pre>
+                    </div>
+                </div>
+            </section>
+
+            <!-- COLUNA DIREITA - INTERATIVO -->
+            <section class="interactive-section">
+                <h2>⚡ Simulador de IA</h2>
+                <p class="sub">Treine seu próprio modelo com funções!</p>
+
+                <!-- CONTROLES -->
+                <div class="controls">
+                    <div class="control-group">
+                        <label>
+                            Dados de Treino
+                            <select id="tipoDado">
+                                <option value="linear">📈 Linear</option>
+                                <option value="quadratico">📊 Quadrático</option>
+                                <option value="senoidal">🌀 Senoidal</option>
+                            </select>
+                        </label>
+                    </div>
+
+                    <div class="control-group">
+                        <label>
+                            Épocas (treinos)
+                            <input type="range" id="epocas" min="1" max="20" value="10">
+                            <span class="valor" id="epocasDisplay">10</span>
+                        </label>
+                    </div>
+
+                    <div class="control-group">
+                        <label>
+                            Taxa de Aprendizado
+                            <input type="range" id="taxa" min="1" max="10" value="5">
+                            <span class="valor" id="taxaDisplay">0.5</span>
+                        </label>
+                    </div>
+
+                    <button class="btn-treinar" id="treinarBtn">🧠 Treinar Modelo</button>
+                </div>
+
+                <!-- RESULTADOS -->
+                <div class="resultado">
+                    <div class="grafico-container">
+                        <canvas id="grafico" width="400" height="250"></canvas>
+                    </div>
+                    
+                    <div class="stats-ia">
+                        <div class="stat-item">
+                            <span class="label">Precisão</span>
+                            <span class="value" id="precisao">0%</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="label">Erro Médio</span>
+                            <span class="value" id="erro">0.00</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="label">Função Ativa</span>
+                            <span class="value" id="funcaoAtiva">ReLU</span>
+                        </div>
+                    </div>
+
+                    <div class="previsao-box">
+                        <p>
+                            🤖 <strong>Previsão:</strong> 
+                            <span id="previsaoTexto">Aguardando treino...</span>
+                        </p>
+                        <div class="input-previsao">
+                            <input type="number" id="inputPrevisao" placeholder="Digite um valor" step="0.1">
+                            <button id="preverBtn" class="btn-prever">🔮 Prever</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FEEDBACK -->
+                <div class="feedback" id="feedback">
+                    💡 Ajuste os parâmetros e clique em "Treinar Modelo"
+                </div>
+            </section>
+
+        </div>
+
+        <!-- RODAPÉ -->
+        <footer class="footer">
+            <p>🌐 Missão IA · Descubra o poder das funções na Inteligência Artificial</p>
+            <div class="footer-badges">
+                <span>🧠 Neurônios: 3</span>
+                <span>📚 Camadas: 1</span>
+                <span>🎯 Funções: Ativação + Custo</span>
+            </div>
+        </footer>
+
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
