@@ -1,298 +1,148 @@
-// ===== ELEMENTOS DO DOM =====
-const tipoDado = document.getElementById('tipoDado');
-const epocasSlider = document.getElementById('epocas');
-const epocasDisplay = document.getElementById('epocasDisplay');
-const taxaSlider = document.getElementById('taxa');
-const taxaDisplay = document.getElementById('taxaDisplay');
-const treinarBtn = document.getElementById('treinarBtn');
-const graficoCanvas = document.getElementById('grafico');
-const precisaoSpan = document.getElementById('precisao');
-const erroSpan = document.getElementById('erro');
-const funcaoAtivaSpan = document.getElementById('funcaoAtiva');
-const previsaoTexto = document.getElementById('previsaoTexto');
-const inputPrevisao = document.getElementById('inputPrevisao');
-const preverBtn = document.getElementById('preverBtn');
-const feedback = document.getElementById('feedback');
-const progresso = document.getElementById('progresso');
+let tarefasConcluidas = 0;
 
-// ===== VARIÁVEIS DO MODELO =====
-let modelo = {
-    peso: 0.5,
-    bias: 0.1,
-    treinado: false,
-    dados: [],
-    alvos: []
-};
-
-// ===== ATUALIZA DISPLAYS =====
-epocasSlider.addEventListener('input', function() {
-    epocasDisplay.textContent = this.value;
-});
-
-taxaSlider.addEventListener('input', function() {
-    const valor = (this.value / 10).toFixed(1);
-    taxaDisplay.textContent = valor;
-});
-
-// ===== GERAR DADOS DE TREINO =====
-function gerarDados(tipo, n = 20) {
-    const dados = [];
-    const alvos = [];
+function verificarTarefa1() {
+    const resposta = document.getElementById('resposta1').value.trim().toLowerCase();
+    const feedback = document.getElementById('feedback1');
     
-    for (let i = 0; i < n; i++) {
-        const x = (Math.random() * 4) - 2; // -2 a 2
-        
-        let y;
-        switch(tipo) {
-            case 'linear':
-                y = 1.5 * x + 0.5 + (Math.random() * 0.3 - 0.15);
-                break;
-            case 'quadratico':
-                y = 0.8 * x * x + 0.3 * x + 0.2 + (Math.random() * 0.3 - 0.15);
-                break;
-            case 'senoidal':
-                y = Math.sin(x * 1.5) + (Math.random() * 0.2 - 0.1);
-                break;
-            default:
-                y = x;
-        }
-        
-        dados.push(x);
-        alvos.push(y);
-    }
-    
-    return { dados, alvos };
-}
-
-// ===== FUNÇÃO DE ATIVAÇÃO =====
-function ativacao(x) {
-    return Math.max(0, x); // ReLU
-}
-
-// ===== FUNÇÃO DE PREDIÇÃO =====
-function predizer(x, peso, bias) {
-    const soma = x * peso + bias;
-    return ativacao(soma);
-}
-
-// ===== FUNÇÃO DE CUSTO (Erro Quadrático Médio) =====
-function calcularCusto(dados, alvos, peso, bias) {
-    let erroTotal = 0;
-    for (let i = 0; i < dados.length; i++) {
-        const pred = predizer(dados[i], peso, bias);
-        const erro = pred - alvos[i];
-        erroTotal += erro * erro;
-    }
-    return erroTotal / dados.length;
-}
-
-// ===== TREINAR MODELO =====
-function treinarModelo() {
-    const tipo = tipoDado.value;
-    const epocas = parseInt(epocasSlider.value);
-    const taxa = parseInt(taxaSlider.value) / 10;
-    
-    // Gerar dados
-    const { dados, alvos } = gerarDados(tipo, 30);
-    modelo.dados = dados;
-    modelo.alvos = alvos;
-    
-    // Inicializar pesos
-    let peso = (Math.random() * 2) - 1;
-    let bias = (Math.random() * 0.5) - 0.25;
-    
-    // Treinamento
-    let historicoErro = [];
-    for (let epoca = 0; epoca < epocas; epoca++) {
-        // Gradiente descendente simples
-        let gradPeso = 0;
-        let gradBias = 0;
-        
-        for (let i = 0; i < dados.length; i++) {
-            const pred = predizer(dados[i], peso, bias);
-            const erro = pred - alvos[i];
-            
-            // Derivada da ReLU (simplificada)
-            const derivada = dados[i] > 0 ? 1 : 0;
-            
-            gradPeso += erro * dados[i] * derivada;
-            gradBias += erro * derivada;
-        }
-        
-        gradPeso /= dados.length;
-        gradBias /= dados.length;
-        
-        // Atualizar pesos
-        peso -= taxa * gradPeso;
-        bias -= taxa * gradBias;
-        
-        // Registrar erro
-        const erroAtual = calcularCusto(dados, alvos, peso, bias);
-        historicoErro.push(erroAtual);
-        
-        // Atualizar progresso
-        const progressoAtual = Math.round(((epoca + 1) / epocas) * 100);
-        progresso.textContent = progressoAtual;
-    }
-    
-    // Salvar modelo
-    modelo.peso = peso;
-    modelo.bias = bias;
-    modelo.treinado = true;
-    
-    // Atualizar estatísticas
-    const erroFinal = calcularCusto(dados, alvos, peso, bias);
-    const precisao = Math.max(0, Math.min(100, 100 - (erroFinal * 20)));
-    
-    precisaoSpan.textContent = `${Math.round(precisao)}%`;
-    erroSpan.textContent = erroFinal.toFixed(4);
-    funcaoAtivaSpan.textContent = 'ReLU';
-    
-    // Desenhar gráfico
-    desenharGrafico(dados, alvos, peso, bias);
-    
-    // Feedback
-    feedback.textContent = `✅ Modelo treinado com sucesso! Erro: ${erroFinal.toFixed(4)}`;
-    feedback.style.color = '#6ea8fe';
-    
-    // Previsão automática
-    previsaoTexto.textContent = 'Modelo pronto para previsões!';
-}
-
-// ===== DESENHAR GRÁFICO =====
-function desenharGrafico(dados, alvos, peso, bias) {
-    const ctx = graficoCanvas.getContext('2d');
-    const w = graficoCanvas.width;
-    const h = graficoCanvas.height;
-    const padding = 40;
-    
-    ctx.clearRect(0, 0, w, h);
-    
-    // Fundo
-    ctx.fillStyle = 'rgba(10, 14, 26, 0.6)';
-    ctx.fillRect(0, 0, w, h);
-    
-    // Encontrar limites
-    let minX = Math.min(...dados);
-    let maxX = Math.max(...dados);
-    let minY = Math.min(...alvos);
-    let maxY = Math.max(...alvos);
-    
-    const rangeX = maxX - minX || 1;
-    const rangeY = maxY - minY || 1;
-    
-    // Função para mapear coordenadas
-    function mapX(x) {
-        return padding + ((x - minX) / rangeX) * (w - 2 * padding);
-    }
-    
-    function mapY(y) {
-        return h - padding - ((y - minY) / rangeY) * (h - 2 * padding);
-    }
-    
-    // Desenhar eixos
-    ctx.strokeStyle = 'rgba(100, 150, 255, 0.2)';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(padding, padding);
-    ctx.lineTo(padding, h - padding);
-    ctx.lineTo(w - padding, h - padding);
-    ctx.stroke();
-    
-    // Desenhar pontos de dados
-    ctx.fillStyle = '#6ea8fe';
-    for (let i = 0; i < dados.length; i++) {
-        const x = mapX(dados[i]);
-        const y = mapY(alvos[i]);
-        ctx.beginPath();
-        ctx.arc(x, y, 4, 0, Math.PI * 2);
-        ctx.fill();
-    }
-    
-    // Desenhar linha de predição
-    if (modelo.treinado) {
-        ctx.strokeStyle = '#c084fc';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        
-        const steps = 50;
-        for (let i = 0; i <= steps; i++) {
-            const x = minX + (i / steps) * rangeX;
-            const pred = predizer(x, peso, bias);
-            const px = mapX(x);
-            const py = mapY(pred);
-            
-            if (i === 0) ctx.moveTo(px, py);
-            else ctx.lineTo(px, py);
-        }
-        ctx.stroke();
-    }
-    
-    // Legendas
-    ctx.fillStyle = '#8899bb';
-    ctx.font = '11px Segoe UI, sans-serif';
-    ctx.fillText('Dados reais', padding + 10, padding + 20);
-    ctx.fillStyle = '#c084fc';
-    ctx.fillText('Previsão', padding + 10, padding + 40);
-}
-
-// ===== FAZER PREVISÃO =====
-function fazerPrevisao() {
-    if (!modelo.treinado) {
-        feedback.textContent = '⚠️ Treine o modelo primeiro!';
-        feedback.style.color = '#fbbf24';
+    if (resposta.length === 0) {
+        feedback.textContent = 'Por favor, digite uma resposta!';
+        feedback.style.color = '#e74c3c';
         return;
     }
     
-    const x = parseFloat(inputPrevisao.value);
-    if (isNaN(x)) {
-        feedback.textContent = '⚠️ Digite um valor válido!';
-        feedback.style.color = '#fbbf24';
-        return;
-    }
+    // Palavras-chave para considerar a resposta válida
+    const palavrasChave = ['inteligência', 'máquina', 'aprender', 'raciocínio', 'cérebro', 'computador', 'robô', 'algoritmo', 'dados'];
+    const respostaValida = palavrasChave.some(palavra => resposta.includes(palavra));
     
-    const pred = predizer(x, modelo.peso, modelo.bias);
-    previsaoTexto.textContent = `f(${x.toFixed(2)}) = ${pred.toFixed(4)}`;
-    feedback.textContent = `🔮 Previsão realizada com sucesso!`;
-    feedback.style.color = '#6ea8fe';
-}
-
-// ===== EVENTOS =====
-treinarBtn.addEventListener('click', treinarModelo);
-preverBtn.addEventListener('click', fazerPrevisao);
-
-// ===== GERAR GRÁFICO INICIAL =====
-function iniciar() {
-    const { dados, alvos } = gerarDados('linear', 30);
-    modelo.dados = dados;
-    modelo.alvos = alvos;
-    desenharGrafico(dados, alvos, 0.5, 0.1);
-    feedback.textContent = '💡 Ajuste os parâmetros e clique em "Treinar Modelo"';
-}
-
-// ===== GERAR QUANDO MUDAR O TIPO =====
-tipoDado.addEventListener('change', function() {
-    const { dados, alvos } = gerarDados(this.value, 30);
-    modelo.dados = dados;
-    modelo.alvos = alvos;
-    modelo.treinado = false;
-    desenharGrafico(dados, alvos, 0.5, 0.1);
-    precisaoSpan.textContent = '0%';
-    erroSpan.textContent = '0.00';
-    previsaoTexto.textContent = 'Aguardando treino...';
-    progresso.textContent = '0';
-    feedback.textContent = '📊 Dados atualizados! Clique em "Treinar Modelo"';
-    feedback.style.color = '#8899bb';
-});
-
-// ===== INICIAR =====
-window.addEventListener('load', iniciar);
-
-// ===== REDIMENSIONAR GRÁFICO =====
-window.addEventListener('resize', function() {
-    if (modelo.treinado) {
-        desenharGrafico(modelo.dados, modelo.alvos, modelo.peso, modelo.bias);
+    if (respostaValida) {
+        feedback.textContent = '✅ Excelente! Você compreende o conceito de IA!';
+        feedback.style.color = '#27ae60';
+        concluirTarefa('tarefa1');
     } else {
-        desenharGrafico(modelo.dados, modelo.alvos, 0.5, 0.1);
+        feedback.textContent = '❌ Tente incluir palavras como: inteligência, máquina, aprender, raciocínio...';
+        feedback.style.color = '#e74c3c';
     }
+}
+
+function verificarTarefa2() {
+    const resposta = document.getElementById('resposta2').value.trim().toLowerCase();
+    const feedback = document.getElementById('feedback2');
+    
+    // Exemplos de IA (incluindo algumas variações)
+    const exemplosIA = ['alexa', 'siri', 'netflix', 'youtube', 'spotify', 'google', 'assistente', 'chatgpt', 'cortana', 'tesla', 'reconhecimento', 'mapas', 'waze', 'uber'];
+    
+    const palavras = resposta.split(/[,\s]+/);
+    const encontrados = palavras.filter(palavra => 
+        exemplosIA.some(exemplo => palavra.includes(exemplo))
+    );
+    
+    if (encontrados.length >= 2) {
+        feedback.textContent = `✅ Ótimo! Você citou exemplos de IA como: ${encontrados.slice(0, 3).join(', ')}`;
+        feedback.style.color = '#27ae60';
+        concluirTarefa('tarefa2');
+    } else {
+        feedback.textContent = '❌ Cite pelo menos 2 exemplos de IA. Exemplos: Alexa, Siri, Netflix, ChatGPT...';
+        feedback.style.color = '#e74c3c';
+    }
+}
+
+function criarRobo() {
+    const container = document.getElementById('roboContainer');
+    const roboExistente = container.querySelector('.robo');
+    
+    if (roboExistente) {
+        container.removeChild(roboExistente);
+    }
+    
+    const robo = document.createElement('div');
+    robo.className = 'robo';
+    
+    // Array com diferentes expressões de robô
+    const expressoes = ['🤖', '👾', '🦾', '⚡', '🧠', '💻'];
+    const expressao = expressoes[Math.floor(Math.random() * expressoes.length)];
+    
+    robo.textContent = expressao;
+    container.appendChild(robo);
+    
+    // Adicionar mensagem criativa
+    setTimeout(() => {
+        const mensagens = [
+            '🤖 Olá, humano!',
+            '⚡ Robô ativado!',
+            '🧠 Processando informações...',
+            '🦾 Sistema operacional!',
+            '👾 Nova IA criada!',
+            '💻 Inteligência artificial!'
+        ];
+        const mensagem = mensagens[Math.floor(Math.random() * mensagens.length)];
+        
+        const mensagemElement = document.createElement('p');
+        mensagemElement.textContent = mensagem;
+        mensagemElement.style.marginTop = '10px';
+        mensagemElement.style.color = '#2c3e50';
+        mensagemElement.style.fontWeight = 'bold';
+        
+        // Remover mensagem anterior se existir
+        const mensagemAntiga = container.querySelector('p');
+        if (mensagemAntiga) {
+            container.removeChild(mensagemAntiga);
+        }
+        
+        container.appendChild(mensagemElement);
+    }, 500);
+    
+    concluirTarefa('tarefa3');
+}
+
+function concluirTarefa(tarefaId) {
+    const tarefa = document.getElementById(tarefaId);
+    
+    // Verificar se a tarefa já foi concluída
+    if (tarefa.classList.contains('concluida')) {
+        return;
+    }
+    
+    tarefa.classList.add('concluida');
+    tarefasConcluidas++;
+    atualizarProgresso();
+}
+
+function atualizarProgresso() {
+    const barra = document.getElementById('barra');
+    const status = document.getElementById('status');
+    
+    const percentual = (tarefasConcluidas / 3) * 100;
+    barra.style.width = percentual + '%';
+    
+    status.textContent = `Tarefas completadas: ${tarefasConcluidas}/3`;
+    
+    // Verificar se todas as tarefas foram concluídas
+    if (tarefasConcluidas === 3) {
+        status.textContent = '🎉 PARABÉNS! Você completou todas as tarefas! Você é um Mestre da IA! 🎉';
+        status.style.color = '#27ae60';
+        status.style.fontSize = '1.2em';
+    } else {
+        status.style.color = '#34495e';
+        status.style.fontSize = '1em';
+    }
+}
+
+// Adicionar efeito de "Enter" para as tarefas
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('resposta1').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            verificarTarefa1();
+        }
+    });
+    
+    document.getElementById('resposta2').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            verificarTarefa2();
+        }
+    });
 });
+
+// Criar um robô automaticamente quando a página carregar
+window.onload = function() {
+    criarRobo();
+};
